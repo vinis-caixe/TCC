@@ -1,5 +1,14 @@
-﻿Simu5G
-=======
+﻿Arquivos e diretórios importantes
+==========
+
+/simulations/NR/TCC/
+/src/UeExtended.ned
+/src/Subject.ned
+/src/Subject.cc
+/src/Subject.h
+
+Simu5G
+----------
 
 5G NR and LTE/LTE-A user-plane simulation model, compatible with the 
 INET Framework.

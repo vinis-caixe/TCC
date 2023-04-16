@@ -1,13 +1,3 @@
-# Ignore everything in repository root 
-/*
-
-# Files to not ignore
-!/.gitignore
-
-# Folder to not ignore
-!/src/
-!/simulations/
-
 # ignore generated files
 src/**/*_m.h
 src/**/*_m.cc
