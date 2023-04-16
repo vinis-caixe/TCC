@@ -1,11 +1,15 @@
 ﻿Arquivos e diretórios importantes
 ==========
 
-/simulations/NR/TCC/
-/src/UeExtended.ned
-/src/Subject.ned
-/src/Subject.cc
-/src/Subject.h
+  /simulations/NR/TCC/
+
+  /src/UeExtended.ned
+
+  /src/Subject.ned
+
+  /src/Subject.cc
+
+  /src/Subject.h
 
 Simu5G
 ----------
