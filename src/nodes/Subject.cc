@@ -65,6 +65,8 @@ void Subject::adicionarUes(){
         ues--;
     }
 
+    DBSCAN();
+
 }
 
 void Subject::removerUes(){
@@ -87,4 +89,64 @@ void Subject::removerUes(){
         quantUe--;
         ues--;
     }
+}
+
+void Subject::DBSCAN(){
+    int i, j,k, clusterID = 0;
+
+    for(i = 0; i < uesVector.size(); i++){
+        if(uesVector[i]->par("clusterID").intValue() != -1){
+            continue;
+        }
+
+        std::vector<cModule *> vizinhosCluster = vizinhos(uesVector[i]);
+        if(vizinhosCluster.size() < par("minUEs").intValue()){
+            uesVector[i]->par("possuiCluster") = false;
+            continue;
+        }
+
+        clusterID++;
+        uesVector[i]->par("clusterID") = clusterID;
+
+        for(j = 0; j < vizinhosCluster.size(); j++){
+            if(vizinhosCluster[j]->par("possuiCluster").boolValue() == false){
+                vizinhosCluster[j]->par("possuiCluster") = true;
+                vizinhosCluster[j]->par("clusterID") = clusterID;
+            }
+            if(vizinhosCluster[j]->par("clusterID").intValue() == -1){
+                continue;
+            }
+            vizinhosCluster[j]->par("possuiCluster") = true;
+            vizinhosCluster[j]->par("clusterID") = clusterID;
+
+            std::vector<cModule *> vizinhosCluster2 = vizinhos(vizinhosCluster[j]);
+            if(vizinhosCluster2.size() >= par("minUEs").intValue()){
+
+                for(k = 0; k < vizinhosCluster2.size(); k++){
+                    auto it = find_if(vizinhosCluster.begin(), vizinhosCluster.end(), [&vizinhosCluster2, k](cModule *obj){return obj->par("numero").stringValue() == vizinhosCluster2[k]->par("numero").stringValue();});
+
+                    if(it == vizinhosCluster.end()){
+                        vizinhosCluster.push_back(vizinhosCluster2[k]);
+                    }
+                }
+            }
+        }
+    }
+}
+
+std::vector<cModule *> Subject::vizinhos(cModule *it){
+    std::vector<cModule *> vizinhosCluster;
+    int i;
+
+    for(i = 0; i < uesVector.size(); i++){
+        if(calculoCorrelacao(it, uesVector[i]) <= epsilon){
+            vizinhosCluster.push_back(uesVector[i]);
+        }
+    }
+
+    return vizinhosCluster;
+}
+
+int Subject::calculoCorrelacao(cModule *it, cModule *iter){
+    return (rand() % 8);
 }

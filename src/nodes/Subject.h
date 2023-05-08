@@ -5,21 +5,24 @@
 #include <vector>
 #include <string>
 #include <random>
+#include <algorithm>
 
 using namespace omnetpp;
 
 class Subject : public cSimpleModule{
 protected:
     simtime_t inicioSim = simTime(); // Tempo inicial
-    simtime_t finalSim = 10.0;       // Tempod final, mudar de acordo com experimento
+    simtime_t finalSim = 10.0;       // Tempo final, mudar de acordo com experimento
 
     unsigned int quantUe = 0;
 
-    cModuleType *moduleType = cModuleType::get("simu5g.nodes.UeExtended");
+    cModuleType *moduleType = cModuleType::get("simu5g.nodes.UeExtended"); // Modulo que sera criado dinamicamente
 
     std::vector<cModule *> uesVector;
 
     cPoisson *testePoisson = new cPoisson(getRNG(0), 6.0); // Determina numero aleatorio de usuarios que irao entrar/sair
+
+    int epsilon;
 
 public:
     virtual void initialize() override;
@@ -27,6 +30,10 @@ public:
     void iniciarContador();
     void adicionarUes();
     void removerUes();
+
+    void DBSCAN();
+    std::vector<cModule *> vizinhos(cModule *it);
+    int calculoCorrelacao(cModule *it, cModule *iter);
 };
 
 #endif //SUBJECT_H_
