@@ -19,6 +19,5 @@ simple Subject{
     parameters:
         int minUEs;
         int maxUEs;
-        //int epsilon; //TODO: verificar suporte para float
         
 }

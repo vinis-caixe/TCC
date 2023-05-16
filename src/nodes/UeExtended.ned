@@ -25,7 +25,7 @@ module UeExtended extends NRUe{
 	    *.routingTableModule = "UrbanMacro5G.ue" + numero + ".ipv4.routingTable";
 	    
 	    int clusterID @mutable = default(-1);
-	    bool possuiCluster @mutable = default(false);
+	    int pontoTipo @mutable = default(-1);
 	    
 	    mobility.typename = default("LinearMobility");
 	    

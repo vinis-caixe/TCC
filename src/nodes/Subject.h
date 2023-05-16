@@ -7,7 +7,15 @@
 #include <random>
 #include <algorithm>
 
+#define NAOIDENTIFICADO -1
+#define RUIDO -2
+
 using namespace omnetpp;
+
+struct cluster{
+    int clusterID;
+    std::vector<int> ues;
+};
 
 class Subject : public cSimpleModule{
 protected:
@@ -22,7 +30,8 @@ protected:
 
     cPoisson *testePoisson = new cPoisson(getRNG(0), 6.0); // Determina numero aleatorio de usuarios que irao entrar/sair
 
-    int epsilon;
+    int epsilon = 1;
+    std::vector<cluster> clusters;
 
 public:
     virtual void initialize() override;
@@ -32,8 +41,10 @@ public:
     void removerUes();
 
     void DBSCAN();
-    std::vector<cModule *> vizinhos(cModule *it);
+    std::vector<cModule *> vizinhos(cModule *it, int n);
     int calculoCorrelacao(cModule *it, cModule *iter);
+
+    void adicionarUesDBSCAN(cModule *ue);
 };
 
 #endif //SUBJECT_H_

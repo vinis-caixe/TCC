@@ -61,6 +61,8 @@ void Subject::adicionarUes(){
 
         uesVector.push_back(module);
 
+        adicionarUesDBSCAN(module);
+
         quantUe++;
         ues--;
     }
@@ -92,34 +94,45 @@ void Subject::removerUes(){
 }
 
 void Subject::DBSCAN(){
-    int i, j,k, clusterID = 0;
+    int i, j, k, clusterID = -1;
 
     for(i = 0; i < uesVector.size(); i++){
-        if(uesVector[i]->par("clusterID").intValue() != -1){
+        // Verifica se UE ja foi identificado em um cluster
+        if(uesVector[i]->par("clusterID").intValue() != NAOIDENTIFICADO){
             continue;
         }
 
-        std::vector<cModule *> vizinhosCluster = vizinhos(uesVector[i]);
+        // Verifica se UE eh ruido
+        std::vector<cModule *> vizinhosCluster = vizinhos(uesVector[i], i);
         if(vizinhosCluster.size() < par("minUEs").intValue()){
-            uesVector[i]->par("possuiCluster") = false;
+            uesVector[i]->par("clusterID") = RUIDO;
+            //uesVector[i]->par("ruido") = true;
             continue;
         }
 
         clusterID++;
         uesVector[i]->par("clusterID") = clusterID;
 
+        clusters.push_back({clusterID, {std::stoi(uesVector[i]->par("numero").stringValue())}});
+
         for(j = 0; j < vizinhosCluster.size(); j++){
-            if(vizinhosCluster[j]->par("possuiCluster").boolValue() == false){
-                vizinhosCluster[j]->par("possuiCluster") = true;
+            if(vizinhosCluster[j]->par("clusterID").intValue() == RUIDO){
+                //vizinhosCluster[j]->par("ruido") = false;
                 vizinhosCluster[j]->par("clusterID") = clusterID;
             }
-            if(vizinhosCluster[j]->par("clusterID").intValue() == -1){
+            if(vizinhosCluster[j]->par("clusterID").intValue() != NAOIDENTIFICADO){
                 continue;
             }
-            vizinhosCluster[j]->par("possuiCluster") = true;
+            //vizinhosCluster[j]->par("ruido") = false;
             vizinhosCluster[j]->par("clusterID") = clusterID;
 
-            std::vector<cModule *> vizinhosCluster2 = vizinhos(vizinhosCluster[j]);
+            clusters[clusterID].ues.push_back(std::stoi(uesVector[j]->par("numero").stringValue()));
+
+            if(clusters[clusterID].ues.size() == par("maxUEs").intValue()){
+                break;
+            }
+
+            std::vector<cModule *> vizinhosCluster2 = vizinhos(vizinhosCluster[j], j);
             if(vizinhosCluster2.size() >= par("minUEs").intValue()){
 
                 for(k = 0; k < vizinhosCluster2.size(); k++){
@@ -134,12 +147,11 @@ void Subject::DBSCAN(){
     }
 }
 
-std::vector<cModule *> Subject::vizinhos(cModule *it){
+std::vector<cModule *> Subject::vizinhos(cModule *it, int n){
     std::vector<cModule *> vizinhosCluster;
-    int i;
 
-    for(i = 0; i < uesVector.size(); i++){
-        if(calculoCorrelacao(it, uesVector[i]) <= epsilon){
+    for(int i = 0; i < uesVector.size(); i++){
+        if(n != i && calculoCorrelacao(it, uesVector[i]) <= epsilon){
             vizinhosCluster.push_back(uesVector[i]);
         }
     }
@@ -148,5 +160,9 @@ std::vector<cModule *> Subject::vizinhos(cModule *it){
 }
 
 int Subject::calculoCorrelacao(cModule *it, cModule *iter){
-    return (rand() % 8);
+    return (rand() % 10);
+}
+
+void Subject::adicionarUesDBSCAN(cModule *ue){
+
 }
