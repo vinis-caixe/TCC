@@ -15,10 +15,24 @@ void Subject::handleMessage(cMessage *msg){
     // Mensagem IN adiciona usuarios
     if(!std::strcmp(msg->getName(), "IN")){
         adicionarUes();
+        for(int i = 0; i < clusters.size(); i++){
+            EV << "ID - " << clusters[i].clusterID << ' ';
+            for(int j = 0; j < clusters[i].ues.size(); j++){
+                EV << clusters[i].ues[j]->par("numero") << ' ';
+            }
+            EV << std::endl;
+        }
     }
 
     if(!std::strcmp(msg->getName(), "DBSCAN")){
         DBSCAN();
+        for(int i = 0; i < clusters.size(); i++){
+            EV << "ID - " << clusters[i].clusterID << ' ';
+            for(int j = 0; j < clusters[i].ues.size(); j++){
+                EV << clusters[i].ues[j]->par("numero") << ' ';
+            }
+            EV << std::endl;
+        }
     }
     // Mensagem OUT remove usuarios
     if(!std::strcmp(msg->getName(), "OUT")){
@@ -77,6 +91,8 @@ void Subject::adicionarUes(){
         quantUe++;
         ues--;
     }
+
+
 }
 
 void Subject::removerUes(){
@@ -90,6 +106,9 @@ void Subject::removerUes(){
         else{
             // Determina usuario aleatorio no vetor
             int indexVector = rand() % uesVector.size();
+
+            removerUeDBSCAN(uesVector[indexVector]);
+
             // Procedimentos para remover dinamicamente usuario
             uesVector[indexVector]->callFinish();
             uesVector[indexVector]->deleteModule();
@@ -102,7 +121,7 @@ void Subject::removerUes(){
 }
 
 void Subject::DBSCAN(){
-    int i, j, k, clusterID = -1;
+    int i, j, k, n, clusterID = -1;
     clusters.clear();
 
     for(i = 0; i < uesVector.size(); i++){
@@ -130,6 +149,8 @@ void Subject::DBSCAN(){
 
         clusters.push_back({clusterID, {uesVector[i]}});
 
+        n = clusters.size();
+
         // Verifica se vizinhos sao pontos de borda ou centro
         for(j = 0; j < vizinhosCluster.size(); j++){
             if(vizinhosCluster[j]->par("pontoTipo").intValue() == RUIDO){
@@ -143,7 +164,7 @@ void Subject::DBSCAN(){
 
             auto it = find_if(clusters.begin(), clusters.end(), [clusterID](cluster a){return a.clusterID == clusterID;});
 
-            it->ues.push_back(uesVector[j]);
+            it->ues.push_back(vizinhosCluster[j]);
 
             // Realiza mesmo processo para vizinho dos vizinhos
             std::vector<cModule *> vizinhosCluster2 = vizinhos(vizinhosCluster[j]);
@@ -415,5 +436,59 @@ void Subject::adicionarUeDBSCAN(cModule *ue){
         }
 
         ue->par("pontoTipo") = RUIDO;
+    }
+}
+
+void Subject::removerUeDBSCAN(cModule *ue){
+    if(ue->par("pontoTipo").intValue() == RUIDO){
+        return;
+    }
+
+    int i, j, k, clusterID = ue->par("clusterID").intValue();
+
+    auto it = find_if(clusters.begin(), clusters.end(), [clusterID](cluster a){return a.clusterID == clusterID;});
+
+    it->ues.erase(std::remove_if(it->ues.begin(), it->ues.end(), [ue](cModule *obj){return obj->par("numero").stringValue() == ue->par("numero").stringValue();}), it->ues.end());
+
+    bool possuiCentro;
+
+    for(i = 0; i < it->ues.size(); i++){
+
+        possuiCentro = false;
+        std::vector<cModule *> vizinhosCluster;
+        for(j = 0; j < it->ues.size(); j++){
+            if(it->ues[i]->par("numero").stringValue() != it->ues[j]->par("numero").stringValue() && calculoCorrelacao(it->ues[i], it->ues[j]) <= epsilon){
+                vizinhosCluster.push_back(it->ues[j]);
+            }
+        }
+
+        if(vizinhosCluster.size() < par("minUEs").intValue()){
+            it->ues[i]->par("pontoTipo") = BORDA;
+
+            for(j = 0; j < vizinhosCluster.size(); j++){
+                std::vector<cModule *> vizinhosCluster2;
+                for(k = 0; k < it->ues.size(); k++){
+                    if(vizinhosCluster[j]->par("numero").stringValue() != it->ues[k]->par("numero").stringValue() && calculoCorrelacao(vizinhosCluster[j], it->ues[k]) <= epsilon){
+                        vizinhosCluster2.push_back(it->ues[k]);
+                    }
+                }
+                if(vizinhosCluster2.size() >= par("maxUEs").intValue()){
+                    possuiCentro = true;
+                }
+            }
+
+            if(possuiCentro == false){
+                it->ues[i]->par("pontoTipo") = RUIDO;
+                it->ues[i]->par("clusterID") = -1;
+            }
+        }
+    }
+
+    it->ues.erase(std::remove_if(it->ues.begin(), it->ues.end(), [](cModule *obj){return obj->par("pontoTipo").intValue() == RUIDO;}), it->ues.end());
+
+
+    if(it->ues.size() == 0){
+        clusterID = it->clusterID;
+        clusters.erase(std::remove_if(clusters.begin(), clusters.end(), [clusterID](cluster a){return a.clusterID == clusterID;}), clusters.end());
     }
 }

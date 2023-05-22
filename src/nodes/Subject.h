@@ -6,6 +6,7 @@
 #include <string>
 #include <random>
 #include <algorithm>
+#include <iostream>
 
 #define CENTRO 1
 #define BORDA 0
@@ -47,6 +48,7 @@ public:
     int calculoCorrelacao(cModule *it, cModule *iter);
 
     void adicionarUeDBSCAN(cModule *ue);
+    void removerUeDBSCAN(cModule *ue);
 };
 
 #endif //SUBJECT_H_
