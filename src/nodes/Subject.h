@@ -7,6 +7,8 @@
 #include <random>
 #include <algorithm>
 
+#define CENTRO 1
+#define BORDA 0
 #define NAOIDENTIFICADO -1
 #define RUIDO -2
 
@@ -14,7 +16,7 @@ using namespace omnetpp;
 
 struct cluster{
     int clusterID;
-    std::vector<int> ues;
+    std::vector<cModule *> ues;
 };
 
 class Subject : public cSimpleModule{
@@ -41,10 +43,10 @@ public:
     void removerUes();
 
     void DBSCAN();
-    std::vector<cModule *> vizinhos(cModule *it, int n);
+    std::vector<cModule *> vizinhos(cModule *it);
     int calculoCorrelacao(cModule *it, cModule *iter);
 
-    void adicionarUesDBSCAN(cModule *ue);
+    void adicionarUeDBSCAN(cModule *ue);
 };
 
 #endif //SUBJECT_H_
