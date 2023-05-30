@@ -20,7 +20,7 @@ void Subject::handleMessage(cMessage *msg){
             for(int j = 0; j < clusters[i].ues.size(); j++){
                 EV << clusters[i].ues[j]->par("numero") << ' ';
             }
-            EV << std::endl;
+            EV << '\n';
         }
     }
 
@@ -31,12 +31,19 @@ void Subject::handleMessage(cMessage *msg){
             for(int j = 0; j < clusters[i].ues.size(); j++){
                 EV << clusters[i].ues[j]->par("numero") << ' ';
             }
-            EV << std::endl;
+            EV << '\n';
         }
     }
     // Mensagem OUT remove usuarios
     if(!std::strcmp(msg->getName(), "OUT")){
         removerUes();
+        for(int i = 0; i < clusters.size(); i++){
+            EV << "ID - " << clusters[i].clusterID << ' ';
+            for(int j = 0; j < clusters[i].ues.size(); j++){
+                EV << clusters[i].ues[j]->par("numero") << ' ';
+            }
+            EV << '\n';
+        }
     }
 
     delete msg;
@@ -121,7 +128,7 @@ void Subject::removerUes(){
 }
 
 void Subject::DBSCAN(){
-    int i, j, k, n, clusterID = -1;
+    int i, j, k, clusterID = -1;
     clusters.clear();
 
     for(i = 0; i < uesVector.size(); i++){
@@ -149,20 +156,20 @@ void Subject::DBSCAN(){
 
         clusters.push_back({clusterID, {uesVector[i]}});
 
-        n = clusters.size();
+        auto it = find_if(clusters.begin(), clusters.end(), [clusterID](cluster a){return a.clusterID == clusterID;});
 
         // Verifica se vizinhos sao pontos de borda ou centro
         for(j = 0; j < vizinhosCluster.size(); j++){
             if(vizinhosCluster[j]->par("pontoTipo").intValue() == RUIDO){
                 vizinhosCluster[j]->par("clusterID") = clusterID;
-                uesVector[j]->par("pontoTipo") = BORDA;
+                vizinhosCluster[j]->par("pontoTipo") = BORDA;
+
+                it->ues.push_back(vizinhosCluster[j]);
             }
             if(vizinhosCluster[j]->par("pontoTipo").intValue() != NAOIDENTIFICADO){
                 continue;
             }
             vizinhosCluster[j]->par("clusterID") = clusterID;
-
-            auto it = find_if(clusters.begin(), clusters.end(), [clusterID](cluster a){return a.clusterID == clusterID;});
 
             it->ues.push_back(vizinhosCluster[j]);
 
@@ -214,20 +221,65 @@ std::vector<cModule *> Subject::vizinhos(cModule *it){
     return vizinhosCluster;
 }
 
-int Subject::calculoCorrelacao(cModule *it, cModule *iter){
-    // TODO: implementar feature space correta - noise path loss NOMA
+double Subject::calculoCorrelacao(cModule *it, cModule *iter){
 
-    int a = std::stoi(it->par("numero").stringValue());
-    int b = std::stoi(iter->par("numero").stringValue());
-    a = a % 2;
-    b = b % 2;
-    int c = a - b;
 
-    if(c == 0){
-        return 0;
+    inet::IMobility *mod = check_and_cast<inet::IMobility*>(this->getParentModule()->getSubmodule("gNB")->getSubmodule("mobility"));
+    inet::Coord coordGnb = mod->getCurrentPosition();
+
+    inet::IMobility *mod2 = check_and_cast<inet::IMobility*>(it->getSubmodule("mobility"));
+    inet::Coord coordUE1 = mod2->getCurrentPosition();
+
+    inet::IMobility *mod3 = check_and_cast<inet::IMobility*>(iter->getSubmodule("mobility"));
+    inet::Coord coordUE2 = mod3->getCurrentPosition();
+
+    double direcaoUE1, direcaoUE2;
+
+    // Opcao 1: direcao vetorial
+    /*direcaoUE1 = std::sin(std::atan2(((1000.0 - coordUE1.y) - coordGnb.y), (coordUE1.x - coordGnb.x)));
+    direcaoUE2 = std::sin(std::atan2(((1000.0 - coordUE2.y) - coordGnb.y), (coordUE2.x - coordGnb.x)));
+
+    if(direcaoUE1 > direcaoUE2){
+        return (direcaoUE1 - direcaoUE2);
+    }
+    else{
+        return (direcaoUE2 - direcaoUE1);
+    }*/
+
+
+    // Opcao 2: angulo entre UEs
+    direcaoUE1 = std::atan2(((1000.0 - coordUE1.y) - coordGnb.y), (coordUE1.x - coordGnb.x)) * 180 / PI;
+    if(direcaoUE1 < 0){
+        direcaoUE1 += 360.0;
+    }
+    direcaoUE2 = std::atan2(((1000.0 - coordUE2.y) - coordGnb.y), (coordUE2.x - coordGnb.x)) * 180 / PI;
+    if(direcaoUE2 < 0){
+            direcaoUE2 += 360.0;
+        }
+
+    EV << "UE1 " << direcaoUE1 << " y " << ((1000.0 - coordUE1.y) - coordGnb.y) << " x " << (coordUE1.x - coordGnb.x) << '\n';
+    EV << "UE2 " << direcaoUE2 << " y " << ((1000.0 - coordUE2.y) - coordGnb.y) << " x " << (coordUE2.x - coordGnb.x) << '\n';
+    if(direcaoUE1 > direcaoUE2){
+        return (direcaoUE1 - direcaoUE2);
+    }
+    else{
+        return (direcaoUE2 - direcaoUE1);
     }
 
-    return 3;
+
+    // Opcao 3: Pathloss
+    /*double pathUE1, pathUE2;
+    pathUE1 = 28.0 + std::log10(std::sqrt(std::pow((coordUE1.x - coordGnb.x), 2) + std::pow((coordUE1.y - coordGnb.y), 2))) + std::log10(this->getParentModule()->getSubmodule("channelControl")->par("carrierFrequency").doubleValue());
+    pathUE2 = 28.0 + std::log10(std::sqrt(std::pow((coordUE2.x - coordGnb.x), 2) + std::pow((coordUE2.y - coordGnb.y), 2))) + std::log10(this->getParentModule()->getSubmodule("channelControl")->par("carrierFrequency").doubleValue());
+
+    EV << "path1 - " << pathUE1 << '\n';
+    EV << "path2 - " << pathUE2 << '\n';
+    if(pathUE1 > pathUE2){
+        return (pathUE1 - pathUE2);
+    }
+    else{
+        return (pathUE2 - pathUE1);
+    }*/
 }
 
 void Subject::adicionarUeDBSCAN(cModule *ue){
@@ -485,7 +537,6 @@ void Subject::removerUeDBSCAN(cModule *ue){
     }
 
     it->ues.erase(std::remove_if(it->ues.begin(), it->ues.end(), [](cModule *obj){return obj->par("pontoTipo").intValue() == RUIDO;}), it->ues.end());
-
 
     if(it->ues.size() == 0){
         clusterID = it->clusterID;
