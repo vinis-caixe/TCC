@@ -43,6 +43,8 @@ module UeExtended extends NRUe{
 	    nrMacNodeId = 1;
 	    nrMacCellId = 1;
 	    
+	    cellularNic.LteChannelModelType = "TccChannelModel";
+	    
 	    numApps = 1;
 	    
 	    app[0].typename = "VoIPReceiver";

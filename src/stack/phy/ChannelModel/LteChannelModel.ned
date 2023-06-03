@@ -153,3 +153,8 @@ simple NRChannelModel_3GPP38_901 extends NRChannelModel
     
     bool useBuildingPenetrationLossHighLossModel = default(false);
 }
+
+simple TccChannelModel extends NRChannelModel_3GPP38_901{
+    parameters:
+        @class("TccChannelModel");
+}

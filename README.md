@@ -3,13 +3,17 @@
 
   /simulations/NR/TCC/
 
-  /src/UeExtended.ned
+  /src/nodes/UeExtended.ned
 
-  /src/Subject.ned
+  /src/nodes/Subject.ned
 
-  /src/Subject.cc
+  /src/nodes/Subject.cc
 
-  /src/Subject.h
+  /src/nodes/Subject.h
+
+  /src/stack/phy/ChannelModel/TccChannelModel.cc
+
+  /src/stack/phy/ChannelModel/TccChannelModel.h
 
 Simu5G
 ----------

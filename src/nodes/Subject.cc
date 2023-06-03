@@ -4,6 +4,10 @@ using namespace omnetpp;
 
 Define_Module(Subject);
 
+Subject::~Subject(){
+    delete testePoisson;
+}
+
 void Subject::initialize(){
 
     iniciarContador();
@@ -254,16 +258,24 @@ double Subject::calculoCorrelacao(cModule *it, cModule *iter){
     }
     direcaoUE2 = std::atan2(((1000.0 - coordUE2.y) - coordGnb.y), (coordUE2.x - coordGnb.x)) * 180 / PI;
     if(direcaoUE2 < 0){
-            direcaoUE2 += 360.0;
-        }
+        direcaoUE2 += 360.0;
+    }
 
-    EV << "UE1 " << direcaoUE1 << " y " << ((1000.0 - coordUE1.y) - coordGnb.y) << " x " << (coordUE1.x - coordGnb.x) << '\n';
-    EV << "UE2 " << direcaoUE2 << " y " << ((1000.0 - coordUE2.y) - coordGnb.y) << " x " << (coordUE2.x - coordGnb.x) << '\n';
     if(direcaoUE1 > direcaoUE2){
-        return (direcaoUE1 - direcaoUE2);
+        if((direcaoUE1 - direcaoUE2) >= 180.0){
+            return (360.0 - (direcaoUE1 - direcaoUE2));
+        }
+        else{
+            return (direcaoUE1 - direcaoUE2);
+        }
     }
     else{
-        return (direcaoUE2 - direcaoUE1);
+        if((direcaoUE2 - direcaoUE1) >= 180.0){
+            return (360.0 - (direcaoUE2 - direcaoUE1));
+        }
+        else{
+            return (direcaoUE2 - direcaoUE1);
+        }
     }
 
 
@@ -543,3 +555,4 @@ void Subject::removerUeDBSCAN(cModule *ue){
         clusters.erase(std::remove_if(clusters.begin(), clusters.end(), [clusterID](cluster a){return a.clusterID == clusterID;}), clusters.end());
     }
 }
+

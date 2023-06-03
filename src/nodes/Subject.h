@@ -38,10 +38,11 @@ protected:
 
     cPoisson *testePoisson = new cPoisson(getRNG(0), 6.0); // Determina numero aleatorio de usuarios que irao entrar/sair
 
-    double epsilon = 0.1;
+    double epsilon = 15.0;
     std::vector<cluster> clusters;
 
 public:
+    ~Subject();
     virtual void initialize() override;
     virtual void handleMessage(cMessage *msg) override;
     void iniciarContador();
@@ -54,6 +55,9 @@ public:
 
     void adicionarUeDBSCAN(cModule *ue);
     void removerUeDBSCAN(cModule *ue);
+
+    std::vector<cluster> getClusters(){ return clusters; }
+    std::vector<cModule *> getUes(){ return uesVector; }
 };
 
 #endif //SUBJECT_H_
