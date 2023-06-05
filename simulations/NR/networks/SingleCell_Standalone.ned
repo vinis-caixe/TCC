@@ -22,7 +22,6 @@ import simu5g.nodes.NR.gNodeB;
 import simu5g.nodes.NR.NRUe;
 import simu5g.nodes.backgroundCell.BackgroundCell;
 import simu5g.world.radio.LteChannelControl;
-import simu5g.nodes.Subject;
 
 // SingleCell_standalone
 //
@@ -71,7 +70,6 @@ network SingleCell_Standalone
         ue[numUe]: NRUe {
             @display("p=628.09375,411.68124");
         }
-        subject: Subject{}
     connections:
         server.pppg++ <--> Eth10G <--> router.pppg++;
         router.pppg++ <--> Eth10G <--> upf.filterGate;

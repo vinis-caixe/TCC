@@ -114,17 +114,16 @@ void Subject::removerUes(){
         if(quantUe < 1){
             break;
         }
-        else{
-            // Determina usuario aleatorio no vetor
-            int indexVector = rand() % uesVector.size();
 
-            removerUeDBSCAN(uesVector[indexVector]);
+        // Determina usuario aleatorio no vetor
+        int indexVector = rand() % uesVector.size();
 
-            // Procedimentos para remover dinamicamente usuario
-            uesVector[indexVector]->callFinish();
-            uesVector[indexVector]->deleteModule();
-            uesVector.erase(uesVector.begin() + indexVector);
-        }
+        removerUeDBSCAN(uesVector[indexVector]);
+
+        // Procedimentos para remover dinamicamente usuario
+        uesVector[indexVector]->callFinish();
+        uesVector[indexVector]->deleteModule();
+        uesVector.erase(uesVector.begin() + indexVector);
 
         quantUe--;
         ues--;
@@ -227,7 +226,7 @@ std::vector<cModule *> Subject::vizinhos(cModule *it){
 
 double Subject::calculoCorrelacao(cModule *it, cModule *iter){
 
-
+    // Posicoes de gNB, UE1 e UE2
     inet::IMobility *mod = check_and_cast<inet::IMobility*>(this->getParentModule()->getSubmodule("gNB")->getSubmodule("mobility"));
     inet::Coord coordGnb = mod->getCurrentPosition();
 
@@ -239,19 +238,7 @@ double Subject::calculoCorrelacao(cModule *it, cModule *iter){
 
     double direcaoUE1, direcaoUE2;
 
-    // Opcao 1: direcao vetorial
-    /*direcaoUE1 = std::sin(std::atan2(((1000.0 - coordUE1.y) - coordGnb.y), (coordUE1.x - coordGnb.x)));
-    direcaoUE2 = std::sin(std::atan2(((1000.0 - coordUE2.y) - coordGnb.y), (coordUE2.x - coordGnb.x)));
-
-    if(direcaoUE1 > direcaoUE2){
-        return (direcaoUE1 - direcaoUE2);
-    }
-    else{
-        return (direcaoUE2 - direcaoUE1);
-    }*/
-
-
-    // Opcao 2: angulo entre UEs
+    //Angulos do UE1 e UE2 em relacao a gNB
     direcaoUE1 = std::atan2(((1000.0 - coordUE1.y) - coordGnb.y), (coordUE1.x - coordGnb.x)) * 180 / PI;
     if(direcaoUE1 < 0){
         direcaoUE1 += 360.0;
@@ -278,20 +265,6 @@ double Subject::calculoCorrelacao(cModule *it, cModule *iter){
         }
     }
 
-
-    // Opcao 3: Pathloss
-    /*double pathUE1, pathUE2;
-    pathUE1 = 28.0 + std::log10(std::sqrt(std::pow((coordUE1.x - coordGnb.x), 2) + std::pow((coordUE1.y - coordGnb.y), 2))) + std::log10(this->getParentModule()->getSubmodule("channelControl")->par("carrierFrequency").doubleValue());
-    pathUE2 = 28.0 + std::log10(std::sqrt(std::pow((coordUE2.x - coordGnb.x), 2) + std::pow((coordUE2.y - coordGnb.y), 2))) + std::log10(this->getParentModule()->getSubmodule("channelControl")->par("carrierFrequency").doubleValue());
-
-    EV << "path1 - " << pathUE1 << '\n';
-    EV << "path2 - " << pathUE2 << '\n';
-    if(pathUE1 > pathUE2){
-        return (pathUE1 - pathUE2);
-    }
-    else{
-        return (pathUE2 - pathUE1);
-    }*/
 }
 
 void Subject::adicionarUeDBSCAN(cModule *ue){
@@ -512,10 +485,12 @@ void Subject::removerUeDBSCAN(cModule *ue){
 
     auto it = find_if(clusters.begin(), clusters.end(), [clusterID](cluster a){return a.clusterID == clusterID;});
 
+    //Remove UE do cluster
     it->ues.erase(std::remove_if(it->ues.begin(), it->ues.end(), [ue](cModule *obj){return obj->par("numero").stringValue() == ue->par("numero").stringValue();}), it->ues.end());
 
     bool possuiCentro;
 
+    // Vizinhos do tipo borda que possuiam somente UE removido como centro tambem sao removidos
     for(i = 0; i < it->ues.size(); i++){
 
         possuiCentro = false;
@@ -536,7 +511,7 @@ void Subject::removerUeDBSCAN(cModule *ue){
                         vizinhosCluster2.push_back(it->ues[k]);
                     }
                 }
-                if(vizinhosCluster2.size() >= par("maxUEs").intValue()){
+                if(vizinhosCluster2.size() >= par("minUEs").intValue()){
                     possuiCentro = true;
                 }
             }
@@ -548,6 +523,7 @@ void Subject::removerUeDBSCAN(cModule *ue){
         }
     }
 
+    // Remove todos os UEs do cluster que foram afetados pela remocao do UE inicial
     it->ues.erase(std::remove_if(it->ues.begin(), it->ues.end(), [](cModule *obj){return obj->par("pontoTipo").intValue() == RUIDO;}), it->ues.end());
 
     if(it->ues.size() == 0){

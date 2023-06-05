@@ -28,7 +28,7 @@ struct cluster{
 class Subject : public cSimpleModule{
 protected:
     simtime_t inicioSim = simTime(); // Tempo inicial
-    simtime_t finalSim = 10.0;       // Tempo final, mudar de acordo com experimento
+    simtime_t finalSim = SimTime::parse(getEnvir()->getConfig()->getConfigValue("sim-time-limit")); // Tempo final de acordo com arquivo .ini
 
     unsigned int quantUe = 0;
 
