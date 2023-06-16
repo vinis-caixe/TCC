@@ -62,7 +62,13 @@ void Subject::iniciarContador(){
     simtime_t tempoDBSCAN = tempoPeriodo / 2.0;
 
     for(i = 0; i < 10; i++){
-        scheduleAt((inicioSim), new cMessage("IN"));
+        if(i == 0){
+            scheduleAt((inicioSim+0.01), new cMessage("IN"));
+        }
+        else{
+            scheduleAt((inicioSim), new cMessage("IN"));
+        }
+
         inicioSim += tempoPeriodo;
     }
 
@@ -89,6 +95,7 @@ void Subject::adicionarUes(){
         cModule *module = moduleType->create((ueString + std::to_string(quantUe)).c_str(), this->getParentModule());
         // Determina numero do usuario para routing table
         module->par("numero") = std::to_string(quantUe);
+        module->par("numeroInt") = quantUe;
         // Procedimentos necessarios para iniciar usuario
         module->finalizeParameters();
         module->buildInside();

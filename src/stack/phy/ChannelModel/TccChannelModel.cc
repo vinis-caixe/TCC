@@ -175,23 +175,8 @@ std::vector<double> TccChannelModel::getSINR(LteAirFrame *frame, UserControlInfo
    recvPower -= cableLoss_; // (dBm-dB)=dBm
 
 
-
-
-
-
-
-
    // Ganho de agrupamento
-   if(dir == DL){
-       recvPower += ganhoCluster(ueCoord, enbCoord);
-   }
-
-
-
-
-
-
-
+   recvPower += ganhoCluster(ueCoord, enbCoord);
 
 
    //=============== ANGOLAR ATTENUATION =================
@@ -435,10 +420,10 @@ double TccChannelModel::ganhoCluster(Coord ueCoord, Coord enbCoord){
 
     double menorAngulo = 360.0 - maiorAngulo;
 
-    if(menorAngulo <= 70.0){
-        return (30.0 - (0.428 * menorAngulo));
+    if(menorAngulo <= 60.0){
+        return (30.0 - (0.5 * menorAngulo));
     }
     else{
-        return (-0.103 * menorAngulo + 7.21);
+        return ((-0.1 * menorAngulo) + 6.0);
     }
 }

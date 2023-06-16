@@ -43,10 +43,15 @@ module UeExtended extends NRUe{
 	    nrMacNodeId = 1;
 	    nrMacCellId = 1;
 	    
-	    cellularNic.LteChannelModelType = "TccChannelModel";
+	    cellularNic.LteChannelModelType = "NRChannelModel_3GPP38_901";
+	    cellularNic.NRChannelModelType = "NRChannelModel_3GPP38_901";
 	    
 	    numApps = 1;
 	    
-	    app[0].typename = "VoIPReceiver";
-	    app[0].localPort = 3000;
+	    int numeroInt @mutable = default(0);
+	    
+	    app[0].typename = "UdpVideoStreamClient";
+	    app[0].startTime = 0.01s;
+	    app[0].serverAddress = "server";
+	    app[0].serverPort = 1000 + numeroInt;
 }
