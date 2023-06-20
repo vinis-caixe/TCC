@@ -1,16 +1,16 @@
-# don't ignore
+# ignore everything
+/*
+
+# but not these files
 !.gitignore
 !README.md
-!*/simulations/NR/TCC/
-!*/src/nodes/UeExtended.ned
-!*/src/nodes/Subject.ned
-!*/src/nodes/Subject.cc
-!*/src/nodes/Subject.h
-!*/src/stack/phy/ChannelModel/TccChannelModel.cc
-!*/src/stack/phy/ChannelModel/TccChannelModel.h
-
-# ignore everything
-*
+!/simulations/NR/TCC/
+!/src/nodes/UeExtended.ned
+!/src/nodes/Subject.ned
+!/src/nodes/Subject.cc
+!/src/nodes/Subject.h
+!/src/stack/phy/ChannelModel/TccChannelModel.cc
+!/src/stack/phy/ChannelModel/TccChannelModel.h
 
 # ignore generated files
 src/**/*_m.h
