@@ -9,10 +9,18 @@ simulations/*
 !simulations/NR/
 simulations/NR/*
 !simulations/NR/TCC/
-!/src/nodes/UeExtended.ned
-!/src/nodes/Subject.ned
-!/src/nodes/Subject.cc
-!/src/nodes/Subject.h
+!src/
+src/*
+!src/nodes/
+src/nodes/*
+!src/nodes/UeExtended.ned
+!src/nodes/Subject.ned
+!src/nodes/Subject.cc
+!src/nodes/Subject.h
+!src/stack/
+src/stack/*
+!src/stack/phy/
+src/stack/phy/*
 !/src/stack/phy/ChannelModel/TccChannelModel.cc
 !/src/stack/phy/ChannelModel/TccChannelModel.h
 
