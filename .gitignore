@@ -21,8 +21,10 @@ src/nodes/*
 src/stack/*
 !src/stack/phy/
 src/stack/phy/*
-!/src/stack/phy/ChannelModel/TccChannelModel.cc
-!/src/stack/phy/ChannelModel/TccChannelModel.h
+!src/stack/phy/ChannelModel/
+src/stack/phy/ChannelModel/*
+!src/stack/phy/ChannelModel/TccChannelModel.cc
+!src/stack/phy/ChannelModel/TccChannelModel.h
 
 # ignore generated files
 src/**/*_m.h
