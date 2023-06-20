@@ -1,7 +1,4 @@
-# ignore everything
-*
-
-# but not these files
+# don't ignore
 !.gitignore
 !README.md
 !*/simulations/NR/TCC/
@@ -11,6 +8,9 @@
 !*/src/nodes/Subject.h
 !*/src/stack/phy/ChannelModel/TccChannelModel.cc
 !*/src/stack/phy/ChannelModel/TccChannelModel.h
+
+# ignore everything
+*
 
 # ignore generated files
 src/**/*_m.h
