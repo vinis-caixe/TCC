@@ -4,7 +4,11 @@
 # but not these files
 !.gitignore
 !README.md
-!/simulations/NR/TCC/
+!simulations/
+simulations/*
+!simulations/NR/
+simulations/NR/*
+!simulations/NR/TCC/
 !/src/nodes/UeExtended.ned
 !/src/nodes/Subject.ned
 !/src/nodes/Subject.cc
