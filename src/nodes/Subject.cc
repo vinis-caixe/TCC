@@ -28,6 +28,7 @@ void Subject::handleMessage(cMessage *msg){
         }
     }
 
+    // Mensagem DBSCAN refaz o agrupamento
     if(!std::strcmp(msg->getName(), "DBSCAN")){
         DBSCAN();
         for(int i = 0; i < clusters.size(); i++){
@@ -59,8 +60,9 @@ void Subject::iniciarContador(){
     int i;
     simtime_t tempoMetade = finalSim / 2.0;
     simtime_t tempoPeriodo = tempoMetade / 10.0; // Periodo para adicionar/remover usuarios
-    simtime_t tempoDBSCAN = tempoPeriodo / 2.0;
+    simtime_t tempoDBSCAN = tempoPeriodo / 2.0; // Periodo inicial para refazer agrupamento
 
+    // Manda mensagem IN na primeira metade da simulacao
     for(i = 0; i < 10; i++){
         if(i == 0){
             scheduleAt((inicioSim+0.01), new cMessage("IN"));
@@ -72,11 +74,13 @@ void Subject::iniciarContador(){
         inicioSim += tempoPeriodo;
     }
 
+    // Manda mensagem DBSCAN durante toda simulacao
     for(i = 0; i < 19; i++){
         scheduleAt((tempoDBSCAN), new cMessage("DBSCAN"));
         tempoDBSCAN += tempoPeriodo;
     }
 
+    // Manda mensagem OUT na segunda metade da simulacao
     for(i = 0; i < 10; i++){
         scheduleAt((tempoMetade), new cMessage("OUT"));
         tempoMetade += tempoPeriodo;
@@ -104,6 +108,7 @@ void Subject::adicionarUes(){
 
         uesVector.push_back(module);
 
+        // Verifica se UE fara parte de algum grupo
         adicionarUeDBSCAN(module);
 
         quantUe++;
@@ -122,9 +127,10 @@ void Subject::removerUes(){
             break;
         }
 
-        // Determina usuario aleatorio no vetor
+        // Determina usuario aleatorio no vetor de UEs
         int indexVector = rand() % uesVector.size();
 
+        // Verifica se UE removido mudara agrupamento
         removerUeDBSCAN(uesVector[indexVector]);
 
         // Procedimentos para remover dinamicamente usuario
@@ -218,7 +224,7 @@ std::vector<cModule *> Subject::vizinhos(cModule *it){
         clusterID = uesVector[i]->par("clusterID").intValue();
         auto iter = find_if(clusters.begin(), clusters.end(), [clusterID](cluster a){return a.clusterID == clusterID;});
 
-        // UEs que estao em clusters que possui quantidade maxima de UEs sao desconsiderados como vizinhos
+        // UEs que estao em clusters que possui quantidade maxima de UEs sao desconsiderados
         if(iter != clusters.end() && iter->ues.size() >= par("maxUEs").intValue()){
             continue;
         }
@@ -255,6 +261,7 @@ double Subject::calculoCorrelacao(cModule *it, cModule *iter){
         direcaoUE2 += 360.0;
     }
 
+    // Retorna diferenca entre angulos
     if(direcaoUE1 > direcaoUE2){
         if((direcaoUE1 - direcaoUE2) >= 180.0){
             return (360.0 - (direcaoUE1 - direcaoUE2));
@@ -297,6 +304,7 @@ void Subject::adicionarUeDBSCAN(cModule *ue){
         }
     }
 
+    // Se quantidade de vizinhos do UE eh menor que minUEs entao so pode ser ponto de ruido ou borda
     if(vizinhosCluster.size() < par("minUEs").intValue()){
 
         if(possuiCentro.size() == 0){
@@ -310,6 +318,7 @@ void Subject::adicionarUeDBSCAN(cModule *ue){
         ue->par("clusterID") = it->clusterID;
         it->ues.push_back(ue);
 
+        // verifica se vizinhos pontos de borda se tornam pontos de centro quando UE aparece
         for(i = 0; i < it->ues.size(); i++){
             if(it->ues[i]->par("pontoTipo").intValue() == BORDA){
                 vizinhosCluster2 = vizinhos(it->ues[i]);
@@ -328,7 +337,8 @@ void Subject::adicionarUeDBSCAN(cModule *ue){
 
         return;
     }
-    else{
+    else{ // Quantidade de vizinhos eh maior ou igual que minUEs
+        // Caso quantidade de vizinhos de tipo ruido eh maior que minUEs eles sao agrupados com o UE
         if((vizinhosCluster.size() - possuiCentro.size() - possuiBorda.size()) >= par("minUEs").intValue()){
             if(clusters.size() != 0){
                 n = clusters.size();
@@ -403,6 +413,8 @@ void Subject::adicionarUeDBSCAN(cModule *ue){
             }
         }
 
+        // Verifica se quantidade de vizinhos do tipo centro que sao do mesmo grupo eh maior que minUEs
+        // Se for UE vira ponto de centro do grupo
         if(maiorContador >= par("minUEs").intValue()){
             auto it = find_if(clusters.begin(), clusters.end(), [maior](cluster a){return a.clusterID == maior;});
             ue->par("clusterID") = maior;
@@ -450,6 +462,8 @@ void Subject::adicionarUeDBSCAN(cModule *ue){
             }
         }
 
+        // Verifica se quantidade de vizinhos do tipo borda que sao do mesmo grupo eh maior que minUEs
+        // Se for UE vira ponto de centro do grupo
         if(maiorContador >= par("minUEs").intValue()){
             auto it = find_if(clusters.begin(), clusters.end(), [maior](cluster a){return a.clusterID == maior;});
             ue->par("clusterID") = maior;
@@ -471,6 +485,7 @@ void Subject::adicionarUeDBSCAN(cModule *ue){
             return;
         }
 
+        // Se nenhum dos outros casos ocorrer o UE eh colocado como ponto de borda
         if(possuiCentro.size() != 0){
             ue->par("clusterID") = possuiCentro[0];
             ue->par("pontoTipo") = BORDA;
@@ -479,6 +494,7 @@ void Subject::adicionarUeDBSCAN(cModule *ue){
             return;
         }
 
+        // Caso nenhum vizinho seja ponto de centro UE vira ruido
         ue->par("pontoTipo") = RUIDO;
     }
 }

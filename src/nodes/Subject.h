@@ -38,7 +38,7 @@ protected:
 
     cPoisson *testePoisson = new cPoisson(getRNG(0), 6.0); // Determina numero aleatorio de usuarios que irao entrar/sair
 
-    double epsilon = 15.0;
+    double epsilon = 15.0; // Parametro do algoritmo DBSCAN
     std::vector<cluster> clusters;
 
 public:

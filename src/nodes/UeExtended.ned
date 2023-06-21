@@ -43,9 +43,6 @@ module UeExtended extends NRUe{
 	    nrMacNodeId = 1;
 	    nrMacCellId = 1;
 	    
-	    cellularNic.LteChannelModelType = "NRChannelModel_3GPP38_901";
-	    cellularNic.NRChannelModelType = "NRChannelModel_3GPP38_901";
-	    
 	    numApps = 1;
 	    
 	    int numeroInt @mutable = default(0);

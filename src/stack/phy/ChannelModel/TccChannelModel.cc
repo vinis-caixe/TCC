@@ -175,8 +175,10 @@ std::vector<double> TccChannelModel::getSINR(LteAirFrame *frame, UserControlInfo
    recvPower -= cableLoss_; // (dBm-dB)=dBm
 
 
-   // Ganho de agrupamento
-   recvPower += ganhoCluster(ueCoord, enbCoord);
+   //=============== Ganho de agrupamento ================
+   if(dir == DL){
+       recvPower += ganhoCluster(ueCoord, enbCoord);
+   }
 
 
    //=============== ANGOLAR ATTENUATION =================
@@ -378,6 +380,7 @@ double TccChannelModel::ganhoCluster(Coord ueCoord, Coord enbCoord){
     IMobility *mod2;
     Coord coordUE;
 
+    // UE no vetor Subject possui diferenca de posicao da sua versao na simulacao de cerca de 0.1m
     for(i = 0; i < ues.size(); i++){
         mod2 = check_and_cast<IMobility*>(ues[i]->getSubmodule("mobility"));
         coordUE = mod2->getCurrentPosition();
@@ -391,10 +394,12 @@ double TccChannelModel::ganhoCluster(Coord ueCoord, Coord enbCoord){
 
     auto it = find_if(clusters.begin(), clusters.end(), [clusterID](cluster a){return a.clusterID == clusterID;});
 
+    // Se UE nao pertencer a nenhum grupo nao ocorre ganho
     if(it == clusters.end()){
         return 0.0;
     }
 
+    // Obtem angulo de todos os UEs do grupo em relacao a BS
     for(i = 0; i < it->ues.size(); i++){
         mod2 = check_and_cast<IMobility*>(it->ues[i]->getSubmodule("mobility"));
         coordUE = mod2->getCurrentPosition();
@@ -409,6 +414,7 @@ double TccChannelModel::ganhoCluster(Coord ueCoord, Coord enbCoord){
 
     double maiorAngulo = 0.0;
 
+    // Obtem maior angulo entre angulos
     for(i = 1; i < angulos.size(); i++){
         if((angulos[i] - angulos[i - 1]) > maiorAngulo){
             maiorAngulo = (angulos[i] - angulos[i - 1]);
@@ -418,11 +424,13 @@ double TccChannelModel::ganhoCluster(Coord ueCoord, Coord enbCoord){
         maiorAngulo = 360.0 - (angulos.back() - angulos[0]);
     }
 
+    // Menor angulo que passa por todos os UEs do grupo
     double menorAngulo = 360.0 - maiorAngulo;
 
+    // Caso angulo seja menor que 60, UEs possuem canais similares e portanto ocorre ganho
     if(menorAngulo <= 60.0){
         return (30.0 - (0.5 * menorAngulo));
-    }
+    } // Caso contrario ocorre perda
     else{
         return ((-0.1 * menorAngulo) + 6.0);
     }
